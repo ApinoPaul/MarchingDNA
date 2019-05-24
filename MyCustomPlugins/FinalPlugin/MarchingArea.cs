@@ -12,8 +12,8 @@ namespace MyCustomPlugins.FinalPlugin {
         public double Size { get; }
         public int[,,] Vertices { get; }
 
-        private readonly double CellSize;
-        private readonly double CellSixthSize;
+        public readonly double CellSize;
+        public readonly double CellSixthSize;
         private readonly Point3d[,] EdgePointsAnchored = new Point3d[12, 5];
 
         private readonly int[,] triTable = {
@@ -294,12 +294,12 @@ namespace MyCustomPlugins.FinalPlugin {
             for (int subEdge = 1; subEdge < 6; subEdge++) {
                 EdgePointsAnchored[0, subEdge - 1] = new Point3d(0, CellSixthSize * subEdge, 0);
                 EdgePointsAnchored[1, subEdge - 1] = new Point3d(CellSixthSize * subEdge, CellSize, 0);
-                EdgePointsAnchored[2, subEdge - 1] = new Point3d(CellSize, CellSixthSize * subEdge, 0);
-                EdgePointsAnchored[3, subEdge - 1] = new Point3d(CellSixthSize * subEdge, 0, 0);
+                EdgePointsAnchored[2, subEdge - 1] = new Point3d(CellSize, CellSize - (CellSixthSize * subEdge), 0);
+                EdgePointsAnchored[3, subEdge - 1] = new Point3d(CellSize - (CellSixthSize * subEdge), 0, 0);
                 EdgePointsAnchored[4, subEdge - 1] = new Point3d(0, CellSixthSize * subEdge, CellSize);
                 EdgePointsAnchored[5, subEdge - 1] = new Point3d(CellSixthSize * subEdge, CellSize, CellSize);
-                EdgePointsAnchored[6, subEdge - 1] = new Point3d(CellSize, CellSixthSize * subEdge, CellSize);
-                EdgePointsAnchored[7, subEdge - 1] = new Point3d(CellSixthSize * subEdge, 0, CellSize);
+                EdgePointsAnchored[6, subEdge - 1] = new Point3d(CellSize, CellSize - (CellSixthSize * subEdge), CellSize);
+                EdgePointsAnchored[7, subEdge - 1] = new Point3d(CellSize - (CellSixthSize * subEdge), 0, CellSize);
                 EdgePointsAnchored[8, subEdge - 1] = new Point3d(0, 0, CellSixthSize * subEdge);
                 EdgePointsAnchored[9, subEdge - 1] = new Point3d(0, CellSize, CellSixthSize * subEdge);
                 EdgePointsAnchored[10, subEdge - 1] = new Point3d(CellSize, CellSize, CellSixthSize * subEdge);
@@ -383,10 +383,10 @@ namespace MyCustomPlugins.FinalPlugin {
                     subEdge = vertices[1] - vertices[2];
                     break;
                 case 2:
-                    subEdge = vertices[3] - vertices[2];
+                    subEdge = vertices[2] - vertices[3];
                     break;
                 case 3:
-                    subEdge = vertices[0] - vertices[3];
+                    subEdge = vertices[3] - vertices[0];
                     break;
                 case 4:
                     subEdge = vertices[4] - vertices[5];
@@ -395,10 +395,10 @@ namespace MyCustomPlugins.FinalPlugin {
                     subEdge = vertices[5] - vertices[6];
                     break;
                 case 6:
-                    subEdge = vertices[7] - vertices[6];
+                    subEdge = vertices[6] - vertices[7];
                     break;
                 case 7:
-                    subEdge = vertices[4] - vertices[7];
+                    subEdge = vertices[7] - vertices[4];
                     break;
                 case 8:
                     subEdge = vertices[0] - vertices[4];
@@ -415,7 +415,7 @@ namespace MyCustomPlugins.FinalPlugin {
             }
 
             if (subEdge < 0) return 5 + subEdge;
-            return subEdge;
+            return subEdge - 1;
         }
     }
 

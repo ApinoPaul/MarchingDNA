@@ -37,7 +37,7 @@ namespace MyCustomPlugins.FinalPlugin {
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA) {
             double resolutionTemp = 150;
-            double area = 100.0;
+            double area = 50.0;
 
             //DA.GetData(0, ref resolutionTemp);
             //DA.GetData(1, ref area);
@@ -46,36 +46,66 @@ namespace MyCustomPlugins.FinalPlugin {
 
             MarchingArea myArea = new MarchingArea(resolution, area);
 
-            List<Point3d> stemPoints = new List<Point3d> {
-                new Point3d(48, 48, 41),
-                new Point3d(41, 41, 39),
-                new Point3d(25, 25, 31),
-                new Point3d(13, 13, 17),
-                new Point3d(3, 3, 0)
-            };
-
-            Stem sampleStem = new Stem(stemPoints, 1.0, 0.2);
-
-            double cellSize = area / resolution;
-
             for (int z = 0; z < resolution; z++) {
                 for (int y = 0; y < resolution; y++) {
-                    for (int x = 0; x < resolution; x++) {
-                        Point3d currentPoint = new Point3d(x * cellSize, y * cellSize, z * cellSize);
-                        bool inside = sampleStem.InShape(currentPoint, out double closestDist);
-
-                        if (!inside) myArea.Vertices[x, y, z] = 0;
-                        else {
-                            int nearSurf = (int)Math.Ceiling(cellSize - closestDist);
-                            myArea.Vertices[x, y, z] = nearSurf < 6 ? nearSurf : 5;
-                        }
+                    for (int x = 0; x < 10; x++) {
+                        if (z < 30) myArea.Vertices[x, y, z] = 1;
+                        else if (z < 60) myArea.Vertices[x, y, z] = 1;
+                        else if (z < 90) myArea.Vertices[x, y, z] = 5;
+                        else if (z < 120) myArea.Vertices[x, y, z] = 5;
+                        else myArea.Vertices[x, y, z] = 5;
                     }
                 }
             }
 
+            //double radius = 15;
+            //Point3d centre = new Point3d(25, 25, 25);
+
+            //double cellSize = myArea.CellSize;
+
+            //for (int z = 0; z < resolution; z++) {
+            //    for (int y = 0; y < resolution; y++) {
+            //        for (int x = 0; x < resolution; x++) {
+            //            Point3d currentVert = new Point3d(x * cellSize, y * cellSize, z * cellSize);
+            //            double dist = currentVert.DistanceTo(centre);
+            //            if (dist > radius) myArea.Vertices[x, y, z] = 0;
+            //            else {
+            //                myArea.Vertices[x, y, z] = 3;
+            //            }
+            //        }
+            //    }
+            //}
+
+            //List<Point3d> stemPoints = new List<Point3d> {
+            //    new Point3d(48, 48, 41),
+            //    new Point3d(41, 41, 39),
+            //    new Point3d(25, 25, 31),
+            //    new Point3d(13, 13, 17),
+            //    new Point3d(3, 3, 0)
+            //};
+
+            //Stem sampleStem = new Stem(stemPoints, 1.0, 0.2);
+
+            //double cellSize = area / resolution;
+
+            //for (int z = 0; z < resolution; z++) {
+            //    for (int y = 0; y < resolution; y++) {
+            //        for (int x = 0; x < resolution; x++) {
+            //            Point3d currentPoint = new Point3d(x * cellSize, y * cellSize, z * cellSize);
+            //            bool inside = sampleStem.InShape(currentPoint, out double closestDist);
+
+            //            if (!inside) myArea.Vertices[x, y, z] = 0;
+            //            else {
+            //                int nearSurf = (int)Math.Ceiling(cellSize - closestDist);
+            //                myArea.Vertices[x, y, z] = nearSurf < 6 ? nearSurf : 5;
+            //            }
+            //        }
+            //    }
+            //}
 
 
-            Mesh generatedMesh = myArea.GetMesh();
+
+                        Mesh generatedMesh = myArea.GetMesh();
 
             DA.SetData(0, generatedMesh);
         }

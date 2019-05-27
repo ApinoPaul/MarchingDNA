@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using System.Collections.Generic;
 
 using Grasshopper.Kernel;
@@ -29,6 +30,7 @@ namespace MyCustomPlugins.FinalPlugin {
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager) {
             pManager.AddGeometryParameter("IsoSurface", "IsoSurf", "IsoSurface made from the input parameters", GH_ParamAccess.item);
+            pManager.AddGeometryParameter("IsoSurface", "IsoSurf", "IsoSurface made from the input parameters", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -36,7 +38,7 @@ namespace MyCustomPlugins.FinalPlugin {
         /// </summary>
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA) {
-            double resolutionTemp = 150;
+            double resolutionTemp = 3;
             double area = 50.0;
 
             //DA.GetData(0, ref resolutionTemp);
@@ -46,33 +48,45 @@ namespace MyCustomPlugins.FinalPlugin {
 
             MarchingArea myArea = new MarchingArea(resolution, area);
 
+            List<Point3d> points = new List<Point3d>();
+
+            Plane pl = new Plane(new Point3d(0, 0, 10), new Point3d(area, 0, 0), new Point3d(0, area, 10 + 20));
+            double cellSize = myArea.CellSize;
+
+            StringBuilder sb = new StringBuilder();
+
             for (int z = 0; z < resolution; z++) {
                 for (int y = 0; y < resolution; y++) {
-                    for (int x = 0; x < 10; x++) {
-                        if (z < 30) myArea.Vertices[x, y, z] = 1;
-                        else if (z < 60) myArea.Vertices[x, y, z] = 1;
-                        else if (z < 90) myArea.Vertices[x, y, z] = 5;
-                        else if (z < 120) myArea.Vertices[x, y, z] = 5;
-                        else myArea.Vertices[x, y, z] = 5;
+                    sb.Append("(");
+                    for (int x = 0; x < resolution; x++) {
+                        Point3d currentVert = new Point3d(x * cellSize, y * cellSize, z * cellSize);
+                        points.Add(currentVert);
+                        double dist = pl.DistanceTo(currentVert);
+                        myArea.Vertices[x, y, z] = dist;
+                        if (myArea.Vertices[x, y, z] > 0) sb.Append(myArea.Vertices[x, y, z] + ", ");
                     }
+                    sb.Append(")\n");
                 }
             }
+            DA.SetDataList(1, points);
 
             //double radius = 15;
             //Point3d centre = new Point3d(25, 25, 25);
 
             //double cellSize = myArea.CellSize;
 
+            //StringBuilder sb = new StringBuilder();
+
             //for (int z = 0; z < resolution; z++) {
             //    for (int y = 0; y < resolution; y++) {
+            //        sb.Append("(");
             //        for (int x = 0; x < resolution; x++) {
             //            Point3d currentVert = new Point3d(x * cellSize, y * cellSize, z * cellSize);
             //            double dist = currentVert.DistanceTo(centre);
-            //            if (dist > radius) myArea.Vertices[x, y, z] = 0;
-            //            else {
-            //                myArea.Vertices[x, y, z] = 3;
-            //            }
+            //            myArea.Vertices[x, y, z] = Math.Round(radius - dist, 3);
+            //            if (myArea.Vertices[x, y, z] > 0) sb.Append(myArea.Vertices[x, y, z] + ", ");
             //        }
+            //        sb.Append(")\n");
             //    }
             //}
 
@@ -103,9 +117,9 @@ namespace MyCustomPlugins.FinalPlugin {
             //    }
             //}
 
+            System.IO.File.WriteAllText(@"E:\UserFiles\Documents\University\4th_Year_Engineer\DigiFab\Array.txt", sb.ToString());
 
-
-                        Mesh generatedMesh = myArea.GetMesh();
+            Mesh generatedMesh = myArea.GetMesh();
 
             DA.SetData(0, generatedMesh);
         }

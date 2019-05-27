@@ -10,11 +10,9 @@ namespace MyCustomPlugins.FinalPlugin {
 
         public int Resolution { get; }
         public double Size { get; }
-        public int[,,] Vertices { get; }
+        public double[,,] Vertices { get; }
 
         public readonly double CellSize;
-        public readonly double CellSixthSize;
-        private readonly Point3d[,] EdgePointsAnchored = new Point3d[12, 5];
 
         private readonly int[,] triTable = {
             {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
@@ -279,9 +277,8 @@ namespace MyCustomPlugins.FinalPlugin {
             Size = size;
 
             CellSize = size / resolution;
-            CellSixthSize = CellSize / 6;
 
-            Vertices = new int[resolution, resolution, resolution];
+            Vertices = new double[resolution, resolution, resolution];
 
             for (int z = 0; z < resolution; z++) {
                 for (int y = 0; y < resolution; y++) {
@@ -289,21 +286,6 @@ namespace MyCustomPlugins.FinalPlugin {
                         Vertices[x, y, z] = 0;
                     }
                 }
-            }
-
-            for (int subEdge = 1; subEdge < 6; subEdge++) {
-                EdgePointsAnchored[0, subEdge - 1] = new Point3d(0, CellSixthSize * subEdge, 0);
-                EdgePointsAnchored[1, subEdge - 1] = new Point3d(CellSixthSize * subEdge, CellSize, 0);
-                EdgePointsAnchored[2, subEdge - 1] = new Point3d(CellSize, CellSize - (CellSixthSize * subEdge), 0);
-                EdgePointsAnchored[3, subEdge - 1] = new Point3d(CellSize - (CellSixthSize * subEdge), 0, 0);
-                EdgePointsAnchored[4, subEdge - 1] = new Point3d(0, CellSixthSize * subEdge, CellSize);
-                EdgePointsAnchored[5, subEdge - 1] = new Point3d(CellSixthSize * subEdge, CellSize, CellSize);
-                EdgePointsAnchored[6, subEdge - 1] = new Point3d(CellSize, CellSize - (CellSixthSize * subEdge), CellSize);
-                EdgePointsAnchored[7, subEdge - 1] = new Point3d(CellSize - (CellSixthSize * subEdge), 0, CellSize);
-                EdgePointsAnchored[8, subEdge - 1] = new Point3d(0, 0, CellSixthSize * subEdge);
-                EdgePointsAnchored[9, subEdge - 1] = new Point3d(0, CellSize, CellSixthSize * subEdge);
-                EdgePointsAnchored[10, subEdge - 1] = new Point3d(CellSize, CellSize, CellSixthSize * subEdge);
-                EdgePointsAnchored[11, subEdge - 1] = new Point3d(CellSize, 0, CellSixthSize * subEdge);
             }
         }
 
@@ -316,7 +298,7 @@ namespace MyCustomPlugins.FinalPlugin {
                 for (int y = 0; y < GridCellWidth; y++) {
                     for (int x = 0; x < GridCellWidth; x++) {
 
-                        int[] gridCell = new int[]
+                        double[] gridCell = new double[]
                         { Vertices[x, y, z],     Vertices[x, y + 1, z],     Vertices[x + 1, y + 1, z],     Vertices[x + 1, y, z],
                           Vertices[x, y, z + 1], Vertices[x, y + 1, z + 1], Vertices[x + 1, y + 1, z + 1], Vertices[x + 1, y, z + 1] };
 
@@ -333,24 +315,24 @@ namespace MyCustomPlugins.FinalPlugin {
             return triangles;
         }
 
-        private byte GetCubeIndex(int[] vertices) {
+        private byte GetCubeIndex(double[] vertices) {
             if (vertices.Length != 8) throw new ArgumentException("arrays must be 8 elements");
 
             byte cubeIndex = 0;
 
-            if (vertices[0] > 0) cubeIndex |= 1;
-            if (vertices[1] > 0) cubeIndex |= 2;
-            if (vertices[2] > 0) cubeIndex |= 4;
-            if (vertices[3] > 0) cubeIndex |= 8;
-            if (vertices[4] > 0) cubeIndex |= 16;
-            if (vertices[5] > 0) cubeIndex |= 32;
-            if (vertices[6] > 0) cubeIndex |= 64;
-            if (vertices[7] > 0) cubeIndex |= 128;
+            if (vertices[0] >= 0) cubeIndex |= 1;
+            if (vertices[1] >= 0) cubeIndex |= 2;
+            if (vertices[2] >= 0) cubeIndex |= 4;
+            if (vertices[3] >= 0) cubeIndex |= 8;
+            if (vertices[4] >= 0) cubeIndex |= 16;
+            if (vertices[5] >= 0) cubeIndex |= 32;
+            if (vertices[6] >= 0) cubeIndex |= 64;
+            if (vertices[7] >= 0) cubeIndex |= 128;
 
             return cubeIndex;
         }
 
-        private void GetCellTriangle(Mesh triangles, byte cubeIndex, int[] vertices, Point3d anchorPoint) {
+        private void GetCellTriangle(Mesh triangles, byte cubeIndex, double[] vertices, Point3d anchorPoint) {
             if (cubeIndex == 0) return;
 
             for (int i = 0; i < 16; i += 3) {
@@ -362,60 +344,74 @@ namespace MyCustomPlugins.FinalPlugin {
                     int vertEdge3 = triTable[cubeIndex, i + 2];
 
                     List<Point3d> triVerts = new List<Point3d> {
-                        EdgePointsAnchored[vertEdge1, GetSubEdge(vertEdge1, vertices)] + anchorPoint,
-                        EdgePointsAnchored[vertEdge2, GetSubEdge(vertEdge2, vertices)] + anchorPoint,
-                        EdgePointsAnchored[vertEdge3, GetSubEdge(vertEdge3, vertices)] + anchorPoint,
-                        EdgePointsAnchored[vertEdge1, GetSubEdge(vertEdge1, vertices)] + anchorPoint,
+                        Point3d.Add(anchorPoint, GetEdgePoint(vertEdge1, vertices)),
+                        Point3d.Add(anchorPoint, GetEdgePoint(vertEdge2, vertices)),
+                        Point3d.Add(anchorPoint, GetEdgePoint(vertEdge3, vertices)),
+                        Point3d.Add(anchorPoint, GetEdgePoint(vertEdge1, vertices))
                     };
+
+                    //List<Point3d> triVerts = new List<Point3d> {
+                    //    EdgePointsAnchored[vertEdge1, GetedgePoint(vertEdge1, vertices)] + anchorPoint,
+                    //    EdgePointsAnchored[vertEdge2, GetedgePoint(vertEdge2, vertices)] + anchorPoint,
+                    //    EdgePointsAnchored[vertEdge3, GetedgePoint(vertEdge3, vertices)] + anchorPoint,
+                    //    EdgePointsAnchored[vertEdge1, GetedgePoint(vertEdge1, vertices)] + anchorPoint,
+                    //};
 
                     triangles.Append(Mesh.CreateFromClosedPolyline(new Polyline(triVerts)));
                 }
             }
         }
 
-        private int GetSubEdge(int currentEdge, int[] vertices) {
-            int subEdge = 0;
+        private Point3d GetEdgePoint(int currentEdge, double[] vertices) {
+            Point3d edgePoint = new Point3d(0, 0, 0);
             switch (currentEdge) {
                 case 0:
-                    subEdge = vertices[0] - vertices[1];
+                    edgePoint.Y = (vertices[0] >= 0) ? vertices[0] : CellSize - vertices[1];
                     break;
                 case 1:
-                    subEdge = vertices[1] - vertices[2];
+                    edgePoint.X = (vertices[1] >= 0) ? vertices[1] : CellSize - vertices[2];
                     break;
                 case 2:
-                    subEdge = vertices[2] - vertices[3];
+                    edgePoint.Y = (vertices[2] >= 0) ? CellSize - vertices[2] : vertices[3];
                     break;
                 case 3:
-                    subEdge = vertices[3] - vertices[0];
+                    edgePoint.X = (vertices[3] >= 0) ? CellSize - vertices[3] : vertices[0];
                     break;
                 case 4:
-                    subEdge = vertices[4] - vertices[5];
+                    edgePoint.Z = CellSize;
+                    edgePoint.Y = (vertices[4] >= 0) ? vertices[4] : CellSize - vertices[5];
                     break;
                 case 5:
-                    subEdge = vertices[5] - vertices[6];
+                    edgePoint.Z = CellSize;
+                    edgePoint.X = (vertices[5] >= 0) ? vertices[5] : CellSize - vertices[6];
                     break;
                 case 6:
-                    subEdge = vertices[6] - vertices[7];
+                    edgePoint.Z = CellSize;
+                    edgePoint.Y = (vertices[6] >= 0) ? CellSize - vertices[6] : vertices[7];
                     break;
                 case 7:
-                    subEdge = vertices[7] - vertices[4];
+                    edgePoint.Z = CellSize;
+                    edgePoint.X = (vertices[7] >= 0) ? CellSize - vertices[7] : vertices[4];
                     break;
                 case 8:
-                    subEdge = vertices[0] - vertices[4];
+                    edgePoint.Z = (vertices[0] >= 0) ? vertices[0] : CellSize - vertices[4];
                     break;
                 case 9:
-                    subEdge = vertices[1] - vertices[5];
+                    edgePoint.Y = CellSize;
+                    edgePoint.Z = (vertices[1] >= 0) ? vertices[1] : CellSize - vertices[5];
                     break;
                 case 10:
-                    subEdge = vertices[2] - vertices[6];
+                    edgePoint.X = CellSize;
+                    edgePoint.Y = CellSize;
+                    edgePoint.Z = (vertices[2] >= 0) ? vertices[2] : CellSize - vertices[6];
                     break;
                 case 11:
-                    subEdge = vertices[3] - vertices[7];
+                    edgePoint.X = CellSize;
+                    edgePoint.Z = (vertices[3] >= 0) ? vertices[3] : CellSize - vertices[7];
                     break;
             }
 
-            if (subEdge < 0) return 5 + subEdge;
-            return subEdge - 1;
+            return edgePoint;
         }
     }
 

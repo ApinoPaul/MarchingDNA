@@ -31,13 +31,10 @@ namespace MyCustomPlugins.FinalPlugin {
 
             double pointRadius = MinRadius + ((MaxRadius - MinRadius) / MaxCurveParam * curveParam);
 
-            if (distClosest < pointRadius) {
-                nearestDist = 0;
-                return true;
-            } else {
-                nearestDist = distClosest - pointRadius;
-                return false;
-            }
+            nearestDist = pointRadius - distClosest;
+
+            if (distClosest < pointRadius) return true;
+            else return false;
         }
     }
 }

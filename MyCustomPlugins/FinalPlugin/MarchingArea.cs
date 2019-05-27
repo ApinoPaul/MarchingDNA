@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Rhino.Geometry;
+using Rhino;
 
 namespace MyCustomPlugins.FinalPlugin {
     public class MarchingArea {
@@ -278,11 +279,11 @@ namespace MyCustomPlugins.FinalPlugin {
 
             CellSize = size / resolution;
 
-            Vertices = new double[resolution, resolution, resolution];
+            Vertices = new double[resolution + 1, resolution + 1, resolution + 1];
 
-            for (int z = 0; z < resolution; z++) {
-                for (int y = 0; y < resolution; y++) {
-                    for (int x = 0; x < resolution; x++) {
+            for (int z = 0; z < resolution + 1; z++) {
+                for (int y = 0; y < resolution + 1; y++) {
+                    for (int x = 0; x < resolution + 1; x++) {
                         Vertices[x, y, z] = 0;
                     }
                 }
@@ -292,7 +293,7 @@ namespace MyCustomPlugins.FinalPlugin {
         public Mesh GetMesh() {
             Mesh triangles = new Mesh();
 
-            int GridCellWidth = Resolution - 1;
+            int GridCellWidth = Resolution;
 
             for (int z = 0; z < GridCellWidth; z++) {
                 for (int y = 0; y < GridCellWidth; y++) {
@@ -320,14 +321,14 @@ namespace MyCustomPlugins.FinalPlugin {
 
             byte cubeIndex = 0;
 
-            if (vertices[0] >= 0) cubeIndex |= 1;
-            if (vertices[1] >= 0) cubeIndex |= 2;
-            if (vertices[2] >= 0) cubeIndex |= 4;
-            if (vertices[3] >= 0) cubeIndex |= 8;
-            if (vertices[4] >= 0) cubeIndex |= 16;
-            if (vertices[5] >= 0) cubeIndex |= 32;
-            if (vertices[6] >= 0) cubeIndex |= 64;
-            if (vertices[7] >= 0) cubeIndex |= 128;
+            if (vertices[0] > 0) cubeIndex |= 1;
+            if (vertices[1] > 0) cubeIndex |= 2;
+            if (vertices[2] > 0) cubeIndex |= 4;
+            if (vertices[3] > 0) cubeIndex |= 8;
+            if (vertices[4] > 0) cubeIndex |= 16;
+            if (vertices[5] > 0) cubeIndex |= 32;
+            if (vertices[6] > 0) cubeIndex |= 64;
+            if (vertices[7] > 0) cubeIndex |= 128;
 
             return cubeIndex;
         }
@@ -350,64 +351,63 @@ namespace MyCustomPlugins.FinalPlugin {
                         Point3d.Add(anchorPoint, GetEdgePoint(vertEdge1, vertices))
                     };
 
-                    //List<Point3d> triVerts = new List<Point3d> {
-                    //    EdgePointsAnchored[vertEdge1, GetedgePoint(vertEdge1, vertices)] + anchorPoint,
-                    //    EdgePointsAnchored[vertEdge2, GetedgePoint(vertEdge2, vertices)] + anchorPoint,
-                    //    EdgePointsAnchored[vertEdge3, GetedgePoint(vertEdge3, vertices)] + anchorPoint,
-                    //    EdgePointsAnchored[vertEdge1, GetedgePoint(vertEdge1, vertices)] + anchorPoint,
-                    //};
-
                     triangles.Append(Mesh.CreateFromClosedPolyline(new Polyline(triVerts)));
                 }
             }
+
+            RhinoApp.WriteLine(triangles.ToString());
         }
 
         private Point3d GetEdgePoint(int currentEdge, double[] vertices) {
             Point3d edgePoint = new Point3d(0, 0, 0);
             switch (currentEdge) {
                 case 0:
-                    edgePoint.Y = (vertices[0] >= 0) ? vertices[0] : CellSize - vertices[1];
+                    edgePoint.Y = (vertices[0] > 0) ? vertices[0] : CellSize - vertices[1];
                     break;
                 case 1:
-                    edgePoint.X = (vertices[1] >= 0) ? vertices[1] : CellSize - vertices[2];
+                    edgePoint.Y = CellSize;
+                    edgePoint.X = (vertices[1] > 0) ? vertices[1] : CellSize - vertices[2];
                     break;
                 case 2:
-                    edgePoint.Y = (vertices[2] >= 0) ? CellSize - vertices[2] : vertices[3];
+                    edgePoint.X = CellSize;
+                    edgePoint.Y = (vertices[2] > 0) ? CellSize - vertices[2] : vertices[3];
                     break;
                 case 3:
-                    edgePoint.X = (vertices[3] >= 0) ? CellSize - vertices[3] : vertices[0];
+                    edgePoint.X = (vertices[3] > 0) ? CellSize - vertices[3] : vertices[0];
                     break;
                 case 4:
                     edgePoint.Z = CellSize;
-                    edgePoint.Y = (vertices[4] >= 0) ? vertices[4] : CellSize - vertices[5];
+                    edgePoint.Y = (vertices[4] > 0) ? vertices[4] : CellSize - vertices[5];
                     break;
                 case 5:
+                    edgePoint.Y = CellSize;
                     edgePoint.Z = CellSize;
-                    edgePoint.X = (vertices[5] >= 0) ? vertices[5] : CellSize - vertices[6];
+                    edgePoint.X = (vertices[5] > 0) ? vertices[5] : CellSize - vertices[6];
                     break;
                 case 6:
+                    edgePoint.X = CellSize;
                     edgePoint.Z = CellSize;
-                    edgePoint.Y = (vertices[6] >= 0) ? CellSize - vertices[6] : vertices[7];
+                    edgePoint.Y = (vertices[6] > 0) ? CellSize - vertices[6] : vertices[7];
                     break;
                 case 7:
                     edgePoint.Z = CellSize;
-                    edgePoint.X = (vertices[7] >= 0) ? CellSize - vertices[7] : vertices[4];
+                    edgePoint.X = (vertices[7] > 0) ? CellSize - vertices[7] : vertices[4];
                     break;
                 case 8:
-                    edgePoint.Z = (vertices[0] >= 0) ? vertices[0] : CellSize - vertices[4];
+                    edgePoint.Z = (vertices[0] > 0) ? vertices[0] : CellSize - vertices[4];
                     break;
                 case 9:
                     edgePoint.Y = CellSize;
-                    edgePoint.Z = (vertices[1] >= 0) ? vertices[1] : CellSize - vertices[5];
+                    edgePoint.Z = (vertices[1] > 0) ? vertices[1] : CellSize - vertices[5];
                     break;
                 case 10:
                     edgePoint.X = CellSize;
                     edgePoint.Y = CellSize;
-                    edgePoint.Z = (vertices[2] >= 0) ? vertices[2] : CellSize - vertices[6];
+                    edgePoint.Z = (vertices[2] > 0) ? vertices[2] : CellSize - vertices[6];
                     break;
                 case 11:
                     edgePoint.X = CellSize;
-                    edgePoint.Z = (vertices[3] >= 0) ? vertices[3] : CellSize - vertices[7];
+                    edgePoint.Z = (vertices[3] > 0) ? vertices[3] : CellSize - vertices[7];
                     break;
             }
 

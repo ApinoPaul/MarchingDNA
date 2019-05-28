@@ -58,9 +58,11 @@
   <ItemGroup>
     <Compile Include="Cheesed Cube\MySphere.cs" />
     <Compile Include="Cheesed Cube\MyCustomPluginsComponent.cs" />
-    <Compile Include="FinalPlugin\IsoSurfaceGenerator.cs" />
+    <Compile Include="FinalPlugin\IsoSurfaceGeneratorTest.cs" />
     <Compile Include="FinalPlugin\MarchingArea.cs" />
     <Compile Include="FinalPlugin\Shape.cs" />
+    <Compile Include="FinalPlugin\SimpleDNA.cs" />
+    <Compile Include="FinalPlugin\SphereDNA.cs" />
     <Compile Include="FinalPlugin\Stem.cs" />
     <Compile Include="Marching Cubes\MarchingVertices.cs" />
     <Compile Include="Marching Cubes\MarchingCubeIsoSurface.cs" />

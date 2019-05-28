@@ -7,14 +7,14 @@ using Rhino.Geometry;
 using Rhino;
 
 namespace MyCustomPlugins.FinalPlugin {
-    public class IsoSurfaceGenerator : GH_Component {
+    public class IsoSurfaceGeneratorTest : GH_Component {
         /// <summary>
         /// Initializes a new instance of the IsoSurfaceGenerator class.
         /// </summary>
-        public IsoSurfaceGenerator()
-          : base("IsoSurfaceGenerator", "IsoGen",
+        public IsoSurfaceGeneratorTest()
+          : base("IsoSurfaceGeneratorTest", "IsoGenTest",
               "Creates IsoSurface from personal information",
-              "FinalBuild", "FinalBuild") {
+              "FinalBuild", "Tests") {
         }
 
         /// <summary>
@@ -38,8 +38,8 @@ namespace MyCustomPlugins.FinalPlugin {
         /// </summary>
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA) {
-            double resolutionTemp = 300;
-            double area = 100.0;
+            double resolutionTemp = 200;
+            double area = 50;
 
             //DA.GetData(0, ref resolutionTemp);
             //DA.GetData(1, ref area);
@@ -79,14 +79,22 @@ namespace MyCustomPlugins.FinalPlugin {
 
             //System.IO.File.WriteAllText(@"E:\UserFiles\Documents\University\4th_Year_Engineer\DigiFab\Array.txt", sb.ToString());
 
-            //double radius = 15;
-            //Point3d centre = new Point3d(25, 25, 25);
+            string name = "paul christian apino";
+
+            RhinoApp.WriteLine(name.GetHashCode() + "");
+
+            //double radius = area * 2 / 7;
+            //Point3d centre = new Point3d(area / 2, area / 2, area / 2);
 
             //double cellSize = myArea.CellSize;
+            //int vertRadius = (int)(radius / cellSize) + 3;
+            //int midX = myArea.VertSizeX / 2;
+            //int midY = myArea.VertSizeY / 2;
+            //int midZ = myArea.VertSizeZ / 2;
 
-            //for (int z = 0; z < myArea.VertSizeZ; z++) {
-            //    for (int y = 0; y < myArea.VertSizeY; y++) {
-            //        for (int x = 0; x < myArea.VertSizeX; x++) {
+            //for (int z = (midZ < vertRadius) ? 0 : midZ - vertRadius; z < ((midZ + vertRadius) > myArea.VertSizeZ ? myArea.VertSizeZ : midZ + vertRadius); z++) {
+            //    for (int y = (midY < vertRadius) ? 0 : midY - vertRadius; y < ((midY + vertRadius) > myArea.VertSizeY ? myArea.VertSizeY : midY + vertRadius); y++) {
+            //        for (int x = (midX < vertRadius) ? 0 : midX - vertRadius; x < ((midX + vertRadius) > myArea.VertSizeX ? myArea.VertSizeX : midX + vertRadius); x++) {
             //            Point3d currentVert = new Point3d(x * cellSize, y * cellSize, z * cellSize);
             //            double dist = currentVert.DistanceTo(centre);
             //            myArea.Vertices[x, y, z] = Math.Round(radius - dist, 8);
@@ -115,9 +123,9 @@ namespace MyCustomPlugins.FinalPlugin {
             //    }
             //}
 
-            //Mesh generatedMesh = myArea.GetMesh();
+            Mesh generatedMesh = myArea.GetMesh();
 
-            //DA.SetData(0, generatedMesh);
+            DA.SetData(0, generatedMesh);
         }
 
         /// <summary>

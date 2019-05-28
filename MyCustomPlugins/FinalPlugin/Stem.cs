@@ -23,7 +23,7 @@ namespace MyCustomPlugins.FinalPlugin {
             MaxCurveParam = controlPoints.Count - 1;
         }
 
-        public bool InShape(Point3d aPoint, out double nearestDist) {
+        public double InShape(Point3d aPoint) {
             StemBone.ClosestPoint(aPoint, out double curveParam);
             Point3d pointOnStem = StemBone.PointAt(curveParam);
 
@@ -31,10 +31,7 @@ namespace MyCustomPlugins.FinalPlugin {
 
             double pointRadius = MinRadius + ((MaxRadius - MinRadius) / MaxCurveParam * curveParam);
 
-            nearestDist = pointRadius - distClosest;
-
-            if (distClosest < pointRadius) return true;
-            else return false;
+            return pointRadius - distClosest;
         }
     }
 }

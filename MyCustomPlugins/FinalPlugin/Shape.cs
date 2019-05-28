@@ -9,6 +9,6 @@ using Rhino.Geometry;
 namespace MyCustomPlugins.FinalPlugin {
     public interface Shape {
 
-        bool InShape(Point3d aPoint, out double nearestDist);
+        double InShape(Point3d aPoint);
     }
 }

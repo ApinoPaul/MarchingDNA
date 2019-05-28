@@ -10,7 +10,12 @@ namespace MyCustomPlugins.FinalPlugin {
     public class MarchingArea {
 
         public int Resolution { get; }
-        public double Size { get; }
+        public double SizeX { get; }
+        public double SizeY { get; }
+        public double SizeZ { get; }
+        public int VertSizeX { get; }
+        public int VertSizeY { get; }
+        public int VertSizeZ { get; }
         public double[,,] Vertices { get; }
 
         public readonly double CellSize;
@@ -273,17 +278,24 @@ namespace MyCustomPlugins.FinalPlugin {
             {0, 3, 8, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
             {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}};
 
-        public MarchingArea(int resolution, double size) {
+        public MarchingArea(int resolution, double sizeX, double sizeY, double sizeZ) {
             Resolution = resolution;
-            Size = size;
+            SizeX = sizeX;
+            SizeY = sizeY;
+            SizeZ = sizeZ;
 
-            CellSize = size / resolution;
+            CellSize = (SizeX < SizeY) ? SizeX : SizeY;
+            CellSize = ((CellSize < SizeZ) ? CellSize : SizeZ) / resolution;
 
-            Vertices = new double[resolution + 1, resolution + 1, resolution + 1];
+            VertSizeX = (int)Math.Floor(SizeX / CellSize) + 1;
+            VertSizeY = (int)Math.Floor(SizeY / CellSize) + 1;
+            VertSizeZ = (int)Math.Floor(SizeZ / CellSize) + 1;
 
-            for (int z = 0; z < resolution + 1; z++) {
-                for (int y = 0; y < resolution + 1; y++) {
-                    for (int x = 0; x < resolution + 1; x++) {
+            Vertices = new double[VertSizeX , VertSizeY, VertSizeZ];
+
+            for (int z = 0; z < VertSizeZ; z++) {
+                for (int y = 0; y < VertSizeY; y++) {
+                    for (int x = 0; x < VertSizeX; x++) {
                         Vertices[x, y, z] = 0;
                     }
                 }
@@ -293,11 +305,9 @@ namespace MyCustomPlugins.FinalPlugin {
         public Mesh GetMesh() {
             Mesh triangles = new Mesh();
 
-            int GridCellWidth = Resolution;
-
-            for (int z = 0; z < GridCellWidth; z++) {
-                for (int y = 0; y < GridCellWidth; y++) {
-                    for (int x = 0; x < GridCellWidth; x++) {
+            for (int z = 0; z < VertSizeZ - 1; z++) {
+                for (int y = 0; y < VertSizeY - 1; y++) {
+                    for (int x = 0; x < VertSizeX - 1; x++) {
 
                         double[] gridCell = new double[]
                         { Vertices[x, y, z],     Vertices[x, y + 1, z],     Vertices[x + 1, y + 1, z],     Vertices[x + 1, y, z],

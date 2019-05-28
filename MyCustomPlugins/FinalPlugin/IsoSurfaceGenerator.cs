@@ -38,7 +38,7 @@ namespace MyCustomPlugins.FinalPlugin {
         /// </summary>
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA) {
-            double resolutionTemp = 150;
+            double resolutionTemp = 2;
             double area = 50.0;
 
             //DA.GetData(0, ref resolutionTemp);
@@ -57,37 +57,37 @@ namespace MyCustomPlugins.FinalPlugin {
             //myArea.Vertices[0, 1, 1] = -30;
             //myArea.Vertices[1, 1, 1] = -30;
 
-            //List<Point3d> points = new List<Point3d>();
+            Plane pl = new Plane(new Point3d(0, 0, 10), new Point3d(area, 0, 0), new Point3d(0, area, 10 + 20));
+            double cellSize = myArea.CellSize;
 
-            //Plane pl = new Plane(new Point3d(0, 0, 10), new Point3d(area, 0, 0), new Point3d(0, area, 10 + 25));
+            List<Point3d> points = new List<Point3d>();
+
+            for (int z = 0; z < resolution + 1; z++) {
+                for (int y = 0; y < resolution + 1; y++) {
+                    for (int x = 0; x < resolution + 1; x++) {
+                        Point3d currentVert = new Point3d(x * cellSize, y * cellSize, z * cellSize);
+                        points.Add(currentVert);
+                        double dist = pl.DistanceTo(currentVert);
+                        myArea.Vertices[x, y, z] = Math.Round(dist, 8);
+                    }
+                }
+            }
+            DA.SetDataList(1, points);
+
+            //double radius = 15;
+            //Point3d centre = new Point3d(25, 25, 25);
+
             //double cellSize = myArea.CellSize;
 
             //for (int z = 0; z < resolution + 1; z++) {
             //    for (int y = 0; y < resolution + 1; y++) {
             //        for (int x = 0; x < resolution + 1; x++) {
             //            Point3d currentVert = new Point3d(x * cellSize, y * cellSize, z * cellSize);
-            //            points.Add(currentVert);
-            //            double dist = pl.DistanceTo(currentVert);
-            //            myArea.Vertices[x, y, z] = Math.Round(dist, 8);
+            //            double dist = currentVert.DistanceTo(centre);
+            //            myArea.Vertices[x, y, z] = Math.Round(radius - dist, 8);
             //        }
             //    }
             //}
-            //DA.SetDataList(1, points);
-
-            double radius = 15;
-            Point3d centre = new Point3d(25, 25, 25);
-
-            double cellSize = myArea.CellSize;
-
-            for (int z = 0; z < resolution + 1; z++) {
-                for (int y = 0; y < resolution + 1; y++) {
-                    for (int x = 0; x < resolution + 1; x++) {
-                        Point3d currentVert = new Point3d(x * cellSize, y * cellSize, z * cellSize);
-                        double dist = currentVert.DistanceTo(centre);
-                        myArea.Vertices[x, y, z] = Math.Round(radius - dist, 8);
-                    }
-                }
-            }
 
             //List<Point3d> stemPoints = new List<Point3d> {
             //    new Point3d(48, 48, 41),

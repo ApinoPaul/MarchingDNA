@@ -360,56 +360,95 @@ namespace MyCustomPlugins.FinalPlugin {
 
         private Point3d GetEdgePoint(int currentEdge, double[] vertices) {
             Point3d edgePoint = new Point3d(0, 0, 0);
+            double v1 = 0;
+            double v2 = 0;
+            double dist = 0;
             switch (currentEdge) {
                 case 0:
-                    edgePoint.Y = (vertices[0] > 0) ? vertices[0] : CellSize - vertices[1];
+                    v1 = Math.Abs(vertices[0]);
+                    v2 = Math.Abs(vertices[1]);
+                    dist = v1 + ((v1 * CellSize / (v1 + v2)) - 1);
+                    edgePoint.Y = (dist > 0) ? dist : 0;
                     break;
                 case 1:
+                    v1 = Math.Abs(vertices[1]);
+                    v2 = Math.Abs(vertices[2]);
+                    dist = v1 + ((v1 * CellSize / (v1 + v2)) - 1);
                     edgePoint.Y = CellSize;
-                    edgePoint.X = (vertices[1] > 0) ? vertices[1] : CellSize - vertices[2];
+                    edgePoint.X = (dist > 0) ? dist : 0;
                     break;
                 case 2:
+                    v1 = Math.Abs(vertices[3]);
+                    v2 = Math.Abs(vertices[2]);
+                    dist = v1 + ((v1 * CellSize / (v1 + v2)) - 1);
                     edgePoint.X = CellSize;
-                    edgePoint.Y = (vertices[2] > 0) ? CellSize - vertices[2] : vertices[3];
+                    edgePoint.Y = (dist > 0) ? dist : 0;
                     break;
                 case 3:
-                    edgePoint.X = (vertices[3] > 0) ? CellSize - vertices[3] : vertices[0];
+                    v1 = Math.Abs(vertices[0]);
+                    v2 = Math.Abs(vertices[3]);
+                    dist = v1 + ((v1 * CellSize / (v1 + v2)) - 1);
+                    edgePoint.X = (dist > 0) ? dist : 0;
                     break;
                 case 4:
+                    v1 = Math.Abs(vertices[4]);
+                    v2 = Math.Abs(vertices[5]);
+                    dist = v1 + ((v1 * CellSize / (v1 + v2)) - 1);
                     edgePoint.Z = CellSize;
-                    edgePoint.Y = (vertices[4] > 0) ? vertices[4] : CellSize - vertices[5];
+                    edgePoint.Y = (dist > 0) ? dist : 0;
                     break;
                 case 5:
+                    v1 = Math.Abs(vertices[5]);
+                    v2 = Math.Abs(vertices[6]);
                     edgePoint.Y = CellSize;
                     edgePoint.Z = CellSize;
-                    edgePoint.X = (vertices[5] > 0) ? vertices[5] : CellSize - vertices[6];
+                    edgePoint.X = (dist > 0) ? dist : 0;
                     break;
                 case 6:
+                    v1 = Math.Abs(vertices[7]);
+                    v2 = Math.Abs(vertices[6]);
+                    dist = v1 + ((v1 * CellSize / (v1 + v2)) - 1);
                     edgePoint.X = CellSize;
                     edgePoint.Z = CellSize;
-                    edgePoint.Y = (vertices[6] > 0) ? CellSize - vertices[6] : vertices[7];
+                    edgePoint.Y = (dist > 0) ? dist : 0;
                     break;
                 case 7:
+                    v1 = Math.Abs(vertices[4]);
+                    v2 = Math.Abs(vertices[7]);
+                    dist = v1 + ((v1 * CellSize / (v1 + v2)) - 1);
                     edgePoint.Z = CellSize;
-                    edgePoint.X = (vertices[7] > 0) ? CellSize - vertices[7] : vertices[4];
+                    edgePoint.X = (dist > 0) ? dist : 0;
                     break;
                 case 8:
-                    edgePoint.Z = (vertices[0] > 0) ? vertices[0] : CellSize - vertices[4];
+                    v1 = Math.Abs(vertices[0]);
+                    v2 = Math.Abs(vertices[4]);
+                    dist = v1 + ((v1 * CellSize / (v1 + v2)) - 1);
+                    edgePoint.Z = (dist > 0) ? dist : 0;
                     break;
                 case 9:
+                    v1 = Math.Abs(vertices[1]);
+                    v2 = Math.Abs(vertices[5]);
+                    dist = v1 + ((v1 * CellSize / (v1 + v2)) - 1);
                     edgePoint.Y = CellSize;
-                    edgePoint.Z = (vertices[1] > 0) ? vertices[1] : CellSize - vertices[5];
+                    edgePoint.Z = (dist > 0) ? dist : 0;
                     break;
                 case 10:
+                    v1 = Math.Abs(vertices[2]);
+                    v2 = Math.Abs(vertices[6]);
+                    dist = v1 + ((v1 * CellSize / (v1 + v2)) - 1);
                     edgePoint.X = CellSize;
                     edgePoint.Y = CellSize;
-                    edgePoint.Z = (vertices[2] > 0) ? vertices[2] : CellSize - vertices[6];
+                    edgePoint.Z = (dist > 0) ? dist : 0;
                     break;
                 case 11:
+                    v1 = Math.Abs(vertices[3]);
+                    v2 = Math.Abs(vertices[7]);
+                    dist = v1 + ((v1 * CellSize / (v1 + v2)) - 1);
                     edgePoint.X = CellSize;
-                    edgePoint.Z = (vertices[3] > 0) ? vertices[3] : CellSize - vertices[7];
+                    edgePoint.Z = (dist > 0) ? dist : 0;
                     break;
             }
+            RhinoApp.WriteLine(edgePoint.Z + "");
 
             return edgePoint;
         }

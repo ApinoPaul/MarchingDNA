@@ -30,7 +30,6 @@ namespace MyCustomPlugins.FinalPlugin {
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager) {
             pManager.AddGeometryParameter("IsoSurface", "IsoSurf", "IsoSurface made from the input parameters", GH_ParamAccess.item);
-            pManager.AddGeometryParameter("IsoSurface", "IsoSurf", "IsoSurface made from the input parameters", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -38,7 +37,7 @@ namespace MyCustomPlugins.FinalPlugin {
         /// </summary>
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA) {
-            double resolutionTemp = 200;
+            double resolutionTemp = 150;
             double area = 50;
 
             //DA.GetData(0, ref resolutionTemp);
@@ -79,28 +78,26 @@ namespace MyCustomPlugins.FinalPlugin {
 
             //System.IO.File.WriteAllText(@"E:\UserFiles\Documents\University\4th_Year_Engineer\DigiFab\Array.txt", sb.ToString());
 
-            string name = "paul christian apino";
+            //SphereDNA myDNA = new SphereDNA("Paul Apino", area / 2, myArea.Vertices);
 
-            RhinoApp.WriteLine(name.GetHashCode() + "");
+            double sphereRadius = 15;
+            Point3d sphereCentre = new Point3d(area / 2, area / 2, area / 2);
 
-            //double radius = area * 2 / 7;
-            //Point3d centre = new Point3d(area / 2, area / 2, area / 2);
+            double cellSize = myArea.CellSize;
+            int vertRadius = (int)(sphereRadius / cellSize) + 3;
+            int midX = myArea.VertSizeX / 2;
+            int midY = myArea.VertSizeY / 2;
+            int midZ = myArea.VertSizeZ / 2;
 
-            //double cellSize = myArea.CellSize;
-            //int vertRadius = (int)(radius / cellSize) + 3;
-            //int midX = myArea.VertSizeX / 2;
-            //int midY = myArea.VertSizeY / 2;
-            //int midZ = myArea.VertSizeZ / 2;
-
-            //for (int z = (midZ < vertRadius) ? 0 : midZ - vertRadius; z < ((midZ + vertRadius) > myArea.VertSizeZ ? myArea.VertSizeZ : midZ + vertRadius); z++) {
-            //    for (int y = (midY < vertRadius) ? 0 : midY - vertRadius; y < ((midY + vertRadius) > myArea.VertSizeY ? myArea.VertSizeY : midY + vertRadius); y++) {
-            //        for (int x = (midX < vertRadius) ? 0 : midX - vertRadius; x < ((midX + vertRadius) > myArea.VertSizeX ? myArea.VertSizeX : midX + vertRadius); x++) {
-            //            Point3d currentVert = new Point3d(x * cellSize, y * cellSize, z * cellSize);
-            //            double dist = currentVert.DistanceTo(centre);
-            //            myArea.Vertices[x, y, z] = Math.Round(radius - dist, 8);
-            //        }
-            //    }
-            //}
+            for (int z = (midZ < vertRadius) ? 0 : midZ - vertRadius; z < ((midZ + vertRadius) > myArea.VertSizeZ ? myArea.VertSizeZ : midZ + vertRadius); z++) {
+                for (int y = (midY < vertRadius) ? 0 : midY - vertRadius; y < ((midY + vertRadius) > myArea.VertSizeY ? myArea.VertSizeY : midY + vertRadius); y++) {
+                    for (int x = (midX < vertRadius) ? 0 : midX - vertRadius; x < ((midX + vertRadius) > myArea.VertSizeX ? myArea.VertSizeX : midX + vertRadius); x++) {
+                        Point3d currentVert = new Point3d(x * cellSize, y * cellSize, z * cellSize);
+                        double dist = currentVert.DistanceTo(sphereCentre);
+                        myArea.Vertices[x, y, z] = Math.Round(sphereRadius - dist, 8);
+                    }
+                }
+            }
 
             //List<Point3d> stemPoints = new List<Point3d> {
             //    new Point3d(48, 48, 41),
@@ -122,6 +119,24 @@ namespace MyCustomPlugins.FinalPlugin {
             //        }
             //    }
             //}
+
+            //Some Shape
+            //double radius = 15;
+            //int shapeSides = 8;
+            //Point3d centre = new Point3d(area / 2, area / 2, area / 2);
+            //Vector3d triangleTransform = new Vector3d(0, 0, radius + radius / 2);
+            //Vector3d rotationAxis = new Vector3d(0, 1, 0);
+
+            //Point3d[] triangle = new Point3d[shapeSides + 1];
+
+            //for (int i = 0; i < triangle.Length; i++) {
+            //    triangle[i] = Point3d.Add(centre, triangleTransform);
+            //    triangleTransform.Rotate(2 * Math.PI / shapeSides, rotationAxis);
+            //}
+
+            //Curve triangleCurve = Curve.CreateControlPointCurve(triangle, 1);
+            //Brep surf = Surface.CreateExtrusion(triangleCurve, new Vector3d(0, 3, 0)).ToBrep();
+            //surf = surf.CapPlanarHoles(0.0001);
 
             Mesh generatedMesh = myArea.GetMesh();
 

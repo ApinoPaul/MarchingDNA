@@ -25,6 +25,7 @@ namespace MyCustomPlugins.FinalPlugin {
         /// Registers all the output parameters for this component.
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager) {
+            pManager.AddGeometryParameter("IsoSurface", "IsoSurf", "IsoSurface made from the input parameters", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -32,6 +33,19 @@ namespace MyCustomPlugins.FinalPlugin {
         /// </summary>
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA) {
+            double resolutionTemp = 100;
+            double area = 50;
+
+            int resolution = (int)resolutionTemp;
+
+            MarchingArea myArea = new MarchingArea(resolution, area, area, area);
+            SphereDNA myDNA = new SphereDNA("Paul Christian Apino", area, myArea);
+
+            myDNA.GetVertexValues();
+
+            Mesh genMesh = myArea.GetMesh();
+
+            DA.SetData(0, genMesh);
         }
 
         /// <summary>

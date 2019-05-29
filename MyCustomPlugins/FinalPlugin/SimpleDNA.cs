@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using System.Collections.Generic;
 
 using Grasshopper.Kernel;
@@ -19,6 +20,11 @@ namespace MyCustomPlugins.FinalPlugin {
         /// Registers all the input parameters for this component.
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager) {
+            pManager.AddTextParameter("First Name", "FirstName", "First name", GH_ParamAccess.item);
+            pManager.AddTextParameter("Last Name", "LastName", "Last name", GH_ParamAccess.item);
+            pManager.AddTextParameter("Date of Birth Day", "DoB Day", "Date of Birth Day", GH_ParamAccess.item);
+            pManager.AddTextParameter("Date of Birth Month", "DoB Month", "Date of Birth Month", GH_ParamAccess.item);
+            pManager.AddTextParameter("Date of Birth Year", "DoB Year", "Date of Birth Year", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -33,13 +39,31 @@ namespace MyCustomPlugins.FinalPlugin {
         /// </summary>
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA) {
-            double resolutionTemp = 150;
+            int resolution = 150;
             double area = 50;
 
-            int resolution = (int)resolutionTemp;
+            string nameFirst = "";
+            string nameLast = "";
+            string day = "";
+            string month = "";
+            string year = "";
+
+            DA.GetData(0, ref nameFirst);
+            DA.GetData(1, ref nameLast);
+            DA.GetData(2, ref day);
+            DA.GetData(3, ref month);
+            DA.GetData(4, ref year);
+
+            StringBuilder sb = new StringBuilder();
+
+            sb.Append(nameFirst.ToLower());
+            sb.Append(" " + nameLast.ToLower());
+            sb.Append(" (" + day);
+            sb.Append("/" + month);
+            sb.Append("/" + year + ")");
 
             MarchingArea myArea = new MarchingArea(resolution, area, area, area);
-            SphereDNA myDNA = new SphereDNA("Paul Christian Apino", area, myArea);
+            SphereDNA myDNA = new SphereDNA(sb.ToString(), area, myArea);
 
             myDNA.GetVertexValues();
 

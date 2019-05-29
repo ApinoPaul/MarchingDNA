@@ -37,34 +37,22 @@ namespace MyCustomPlugins.FinalPlugin {
         }
 
         public void GetVertexValues() {
-            //ExtractSphereMesh();
-            ExtractBorderShape();
+            ExtractSphereMesh();
+            //ExtractBorderShape();
+            ExtractFaceShape();
         }
 
         private void ExtractSphereVal() {
-            int extractedInt = getIntValueOf(0);
+            int extractedInt = GetIntValueOf(0);
 
             sphereRadius = (int)Math.Round(12 + ((17 - 12) / 256.0 * extractedInt));
             centrePoint = new Point3d(CentreSphereDist, CentreSphereDist, CentreSphereDist);
         }
 
         private void ExtractSphereMesh() {
-            int vertRadius = (int)(sphereRadius / marchingArea.CellSize) + 3;
-            PointInt minVert = new PointInt(
-                marchingArea.VertSizeX / 2 - vertRadius,
-                marchingArea.VertSizeY / 2 - vertRadius,
-                marchingArea.VertSizeZ / 2 - vertRadius
-            );
-
-            PointInt maxVert = new PointInt(
-                (minVert.X + vertRadius * 2) > marchingArea.VertSizeX ? marchingArea.VertSizeX : minVert.X + vertRadius * 2,
-                (minVert.Y + vertRadius * 2) > marchingArea.VertSizeY ? marchingArea.VertSizeY : minVert.Y + vertRadius * 2,
-                (minVert.Z + vertRadius * 2) > marchingArea.VertSizeZ ? marchingArea.VertSizeZ : minVert.Z + vertRadius * 2
-            );
-
-            for (int z = minVert.Z; z < maxVert.Z; z++) {
-                for (int y = minVert.Y; y < maxVert.Y; y++) {
-                    for (int x = minVert.X; x < maxVert.X; x++) {
+            for (int z = 0; z < marchingArea.VertSizeZ; z++) {
+                for (int y = 0; y < marchingArea.VertSizeY; y++) {
+                    for (int x = 0; x < marchingArea.VertSizeX; x++) {
                         Point3d currentVert = new Point3d(x * marchingArea.CellSize, y * marchingArea.CellSize, z * marchingArea.CellSize);
                         double dist = currentVert.DistanceTo(centrePoint);
                         marchingArea.Vertices[x, y, z] = Math.Round(sphereRadius - dist, 8);
@@ -74,62 +62,148 @@ namespace MyCustomPlugins.FinalPlugin {
         }
 
         public void ExtractBorderShape() {
-            int extractedInt = getIntValueOf(1);
+            int extractedInt = GetIntValueOf(1);
 
             int shapeSides = extractedInt % 7 + 5;
-            double shapeRadius = sphereRadius + sphereRadius / 3;
-            Vector3d triangleTransform = new Vector3d(0, 0, shapeRadius);
+            double shapeRadius = CentreSphereDist;
+            Vector3d polygonTransform = new Vector3d(0, 0, shapeRadius);
             Vector3d rotationAxis = new Vector3d(0, 1, 0);
-            Point3d shapeCentre = centrePoint;
 
-            Point3d[] triangle = new Point3d[shapeSides + 1];
+            Point3d[] polygon = new Point3d[shapeSides + 1];
+            Point3d shapeCentre = Point3d.Add(centrePoint, new Point3d(0, -1, 0));
 
-            for (int i = 0; i < triangle.Length; i++) {
-                triangle[i] = Point3d.Add(shapeCentre, triangleTransform);
-                triangleTransform.Rotate(2 * Math.PI / shapeSides, rotationAxis);
+            for (int i = 0; i < polygon.Length; i++) {
+                polygon[i] = Point3d.Add(shapeCentre, polygonTransform);
+                polygonTransform.Rotate(2 * Math.PI / shapeSides, rotationAxis);
             }
 
-            Curve triangleCurve = Curve.CreateControlPointCurve(triangle, 1);
-            //Brep surf = Surface.CreateExtrusion(triangleCurve, new Vector3d(0, 2, 0)).ToBrep();
-            //surf = surf.CapPlanarHoles(0.000000001);
+            Curve shapeCurve = Curve.CreateControlPointCurve(polygon, 1);
 
             int vertRadius = (int)(shapeRadius / marchingArea.CellSize);
             PointInt minVert = new PointInt(
-                marchingArea.VertSizeX / 2 - vertRadius,
-                marchingArea.VertSizeY / 2 - (int)(2 / marchingArea.CellSize),
-                marchingArea.VertSizeZ / 2 - vertRadius
+                0,
+                marchingArea.VertSizeY / 2 - (int)(1 / marchingArea.CellSize),
+                0
             );
             PointInt maxVert = new PointInt(
-                marchingArea.VertSizeX / 2 + vertRadius,
-                marchingArea.VertSizeY / 2 + (int)(2 / marchingArea.CellSize),
-                marchingArea.VertSizeZ / 2 + vertRadius
+                marchingArea.VertSizeX,
+                marchingArea.VertSizeY / 2 + (int)(1 / marchingArea.CellSize),
+                marchingArea.VertSizeZ
             );
 
-            for (int z = minVert.Z; z < maxVert.Z; z++) {
-                for (int y = minVert.Y; y < maxVert.Y; y++) {
+            Vector3d shapeTranslation = new Vector3d(0, marchingArea.CellSize, 0);
 
+            for (int y = minVert.Y; y < maxVert.Y + 1; y++) {
+                for (int z = minVert.Z; z < maxVert.Z; z++) {
                     for (int x = minVert.X; x < maxVert.X; x++) {
-                        double curveParam = 0;
                         Point3d currentVert = new Point3d(x * marchingArea.CellSize, y * marchingArea.CellSize, z * marchingArea.CellSize);
-                        triangleCurve.ClosestPoint(currentVert, out curveParam);
-                        Point3d closestPoint = triangleCurve.PointAt(curveParam);
+                        shapeCurve.ClosestPoint(currentVert, out double curveParam);
+                        Point3d closestPoint = shapeCurve.PointAt(curveParam);
                         double distToCurrent = currentVert.DistanceTo(shapeCentre);
                         double distToClosest = closestPoint.DistanceTo(shapeCentre);
                         double dist = currentVert.DistanceTo(closestPoint);
+
                         if (distToClosest > distToCurrent) {
-                            if (marchingArea.Vertices[x, y, z] > 0)
-                                marchingArea.Vertices[x, y, z] = (dist < marchingArea.Vertices[x, y, z]) ? dist : marchingArea.Vertices[x, y, z];
-                            else marchingArea.Vertices[x, y, z] = dist;
-                        } else if (!(marchingArea.Vertices[x, y, z] > 0)) {
-                            dist = dist * -1;
-                            marchingArea.Vertices[x, y, z] = (dist > marchingArea.Vertices[x, y, z]) ? dist : marchingArea.Vertices[x, y, z];
+                            marchingArea.Vertices[x, y, z] = (marchingArea.Vertices[x, y, z] > 0) ? marchingArea.Vertices[x, y, z] : dist;
+                        } else {
+                            dist = -dist;
+                            marchingArea.Vertices[x, y, z] = (marchingArea.Vertices[x, y, z] > 0) ? marchingArea.Vertices[x, y, z] 
+                                : (dist > marchingArea.Vertices[x, y, z]) ? dist : marchingArea.Vertices[x, y, z];
                         }
                     }
                 }
+                shapeCurve.Translate(shapeTranslation);
+                shapeCentre = Point3d.Add(shapeCentre, shapeTranslation);
             }
         }
 
-        private int getIntValueOf(int bitIndex) {
+        public void ExtractFaceShape () {
+            int extractedInt = GetIntValueOf(2);
+
+            int shapeSides = extractedInt % 7 + 5;
+            double shapeRadius = CentreSphereDist;
+            Vector3d polygonTransform = new Vector3d(0, 0, shapeRadius);
+            Vector3d rotationAxis = new Vector3d(0, 1, 0);
+
+            Point3d[] polygon = new Point3d[shapeSides + 1];
+            Point3d shapeCentre1 = centrePoint;
+            Point3d shapeCentre2 = centrePoint;
+
+            for (int i = 0; i < polygon.Length; i++) {
+                polygon[i] = Point3d.Add(shapeCentre1, polygonTransform);
+                polygonTransform.Rotate(2 * Math.PI / shapeSides, rotationAxis);
+            }
+
+            Curve shapeCurve1 = Curve.CreateControlPointCurve(polygon, 1);
+            Curve shapeCurve2 = Curve.CreateControlPointCurve(polygon, 1);
+
+            Vector3d shape1Translate = new Vector3d(0, -8, 0);
+            Vector3d shape2Translate = new Vector3d(0, 8, 0);
+
+            shapeCurve1.Translate(shape1Translate);
+            shapeCentre1 = Point3d.Add(shapeCentre1, shape1Translate);
+            shapeCurve2.Translate(shape2Translate);
+            shapeCentre2 = Point3d.Add(shapeCentre2, shape2Translate);
+
+            Vector3d shape1VecTrans = new Vector3d(0, -marchingArea.CellSize, 0);
+            Vector3d shape2VecTrans = new Vector3d(0, marchingArea.CellSize, 0);
+
+            int centreDist = marchingArea.VertSizeY / 2;
+            int shapeDist = (int)(8 / marchingArea.CellSize);
+
+            PointInt minVert = new PointInt(
+                0,
+                centreDist - 2 * shapeDist,
+                0
+            );
+            PointInt maxVert = new PointInt(
+                marchingArea.VertSizeX,
+                centreDist - shapeDist,
+                marchingArea.VertSizeZ
+            );
+
+            GetShapeVertices(minVert, maxVert, shapeCurve1, shapeCentre1, shape1VecTrans);
+
+            minVert = new PointInt(
+                0,
+                centreDist + shapeDist,
+                0
+            );
+            maxVert = new PointInt(
+                marchingArea.VertSizeX,
+                centreDist + 2 * shapeDist,
+                marchingArea.VertSizeZ
+            );
+
+            GetShapeVertices(minVert, maxVert, shapeCurve2, shapeCentre2, shape2VecTrans);
+        }
+
+        private void GetShapeVertices (PointInt minVert, PointInt maxVert, Curve shapeCurve, Point3d shapeCentre, Vector3d shapeTranslation) {
+            for (int y = minVert.Y; y < maxVert.Y + 1; y++) {
+                for (int z = minVert.Z; z < maxVert.Z; z++) {
+                    for (int x = minVert.X; x < maxVert.X; x++) {
+                        Point3d currentVert = new Point3d(x * marchingArea.CellSize, y * marchingArea.CellSize, z * marchingArea.CellSize);
+                        shapeCurve.ClosestPoint(currentVert, out double curveParam);
+                        Point3d closestPoint = shapeCurve.PointAt(curveParam);
+                        double distToCurrent = currentVert.DistanceTo(shapeCentre);
+                        double distToClosest = closestPoint.DistanceTo(shapeCentre);
+                        double dist = currentVert.DistanceTo(closestPoint);
+
+                        if (distToClosest > distToCurrent) {
+                            marchingArea.Vertices[x, y, z] = (marchingArea.Vertices[x, y, z] > 0) ? marchingArea.Vertices[x, y, z] : dist;
+                        } else {
+                            dist = -dist;
+                            marchingArea.Vertices[x, y, z] = (marchingArea.Vertices[x, y, z] > 0) ? marchingArea.Vertices[x, y, z]
+                                : (dist > marchingArea.Vertices[x, y, z]) ? dist : marchingArea.Vertices[x, y, z];
+                        }
+                    }
+                }
+                shapeCurve.Translate(shapeTranslation);
+                shapeCentre = Point3d.Add(shapeCentre, shapeTranslation);
+            }
+        }
+
+        private int GetIntValueOf(int bitIndex) {
             int extractedInt = 0;
             int indexRange = (bitIndex + 1) * 8 - 1;
             for (int i = indexRange, pow = 1; i > indexRange - 8; i--) {
